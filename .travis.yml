@@ -1,0 +1,34 @@
+language:
+    - cpp
+
+env:
+    - BUILD_TYPE=Debug TOOLCHAIN=analyze
+    - BUILD_TYPE=Release TOOLCHAIN=analyze
+
+install:
+    # install gcc 4.8 and libstdc++
+    # * github.com/travis-ci-tester/travis-test-gcc-cxx-11
+    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test --yes
+    - sudo apt-get update
+    - sudo apt-get install g++-4.8
+    # -- end
+
+    # install cmake 2.8.8
+    # * github.com/travis-ci-tester/travis-test-cmake
+    - "wget https://launchpad.net/ubuntu/+source/cmake/2.8.8-2ubuntu1/+build/3441442/+files/cmake_2.8.8-2ubuntu1_amd64.deb"
+    - "wget https://launchpad.net/ubuntu/+archive/primary/+files/cmake-data_2.8.8-2ubuntu1_all.deb"
+    - "sudo apt-get remove cmake-data cmake"
+    - "sudo dpkg --install cmake-data_2.8.8-2ubuntu1_all.deb cmake_2.8.8-2ubuntu1_amd64.deb"
+    # -- end
+
+    # download toolchains
+    - wget https://github.com/ruslo/polly/archive/v0.2.0.tar.gz
+    - tar xf v0.2.0.tar.gz
+    - export POLLY_ROOT=`pwd`/polly-0.2.0
+    # -- end
+
+script:
+    - cmake -H. -B_builds -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_TOOLCHAIN_FILE=${POLLY_ROOT}/${TOOLCHAIN}.cmake
+    - cmake --build _builds --config ${BUILD_TYPE}
+    - ctest -VV -C ${BUILD_TYPE}
+
